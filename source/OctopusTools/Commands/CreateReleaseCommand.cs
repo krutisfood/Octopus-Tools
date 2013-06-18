@@ -5,6 +5,7 @@ using System.Linq;
 using OctopusTools.Client;
 using OctopusTools.Diagnostics;
 using OctopusTools.Infrastructure;
+using OctopusTools.Model;
 using log4net;
 
 namespace OctopusTools.Commands
@@ -84,8 +85,8 @@ namespace OctopusTools.Commands
             var versionNumber = VersionNumber;
             if (string.IsNullOrWhiteSpace(versionNumber))
             {
-                Log.Warn(string.Format("A --version parameter was not specified, the latest version, number {0}, has been automatically selected.", versionNumber));
                 versionNumber = plan.GetHighestVersionNumber();
+                Log.Warn(string.Format("A --version parameter was not specified, the latest version, number {0}, has been automatically selected.", versionNumber));
             }
 
             Log.Info("Release plan for release:    " + versionNumber);
@@ -93,8 +94,16 @@ namespace OctopusTools.Commands
             Log.Info(plan.FormatAsTable());
 
             Log.Debug("Creating release...");
-            var release = Session.CreateRelease(project, plan.GetSelections(), versionNumber, ReleaseNotes);
-            Log.Info("Release created successfully!");
+            var release = Session.GetRelease(project, versionNumber);
+            if (release != null)
+            {
+                Log.Warn(string.Format("Release {0} has already been created, not creating again.", versionNumber));
+            }
+            else
+            {
+                release = Session.CreateRelease(project, plan.GetSelections(), versionNumber, ReleaseNotes);
+                Log.Info("Release created successfully!");
+            }
 
             Log.ServiceMessage("setParameter", new { name = "octo.releaseNumber", value = release.Version });
 
