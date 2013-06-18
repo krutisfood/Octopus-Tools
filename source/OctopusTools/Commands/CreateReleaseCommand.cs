@@ -84,7 +84,7 @@ namespace OctopusTools.Commands
             var versionNumber = VersionNumber;
             if (string.IsNullOrWhiteSpace(versionNumber))
             {
-                Log.Warn("A --version parameter was not specified, so a version number was automatically selected based on the highest package version.");
+                Log.Warn(string.Format("A --version parameter was not specified, the latest version, number {0}, has been automatically selected.", versionNumber));
                 versionNumber = plan.GetHighestVersionNumber();
             }
 

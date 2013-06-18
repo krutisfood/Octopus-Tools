@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using OctopusTools.Client;
 using OctopusTools.Infrastructure;
+using OctopusTools.Model;
 using log4net;
 
 namespace OctopusTools.Commands
@@ -36,7 +37,7 @@ namespace OctopusTools.Commands
                 var options = base.Options;
                 options.Add("project=", "Name of the project", v => ProjectName = v);
                 options.Add("deployto=", "Environment to deploy to, e.g., Production", v => DeployToEnvironmentNames.Add(v));
-                options.Add("releaseNumber=|version=", "Version number of the release to deploy.", v => VersionNumber = v);
+                options.Add("releaseNumber=|version=", "[Optional] Version number of the release to deploy (default latest).", v => VersionNumber = v);
                 options.Add("force", "Whether to force redeployment of already installed packages (flag, default false).", v => Force = true);
                 options.Add("waitfordeployment", "Whether to wait synchronously for deployment to finish.", v => WaitForDeployment = true);
                 options.Add("deploymenttimeout=", "[Optional] Specifies maximum time (timespan format) that deployment can take (default 00:10:00)", v => DeploymentTimeout = TimeSpan.Parse(v));
@@ -49,7 +50,6 @@ namespace OctopusTools.Commands
         {
             if (string.IsNullOrWhiteSpace(ProjectName)) throw new CommandException("Please specify a project name using the parameter: --project=XYZ");
             if (DeployToEnvironmentNames.Count == 0) throw new CommandException("Please specify an environment using the parameter: --deployto=XYZ");
-            if (string.IsNullOrWhiteSpace(VersionNumber)) throw new CommandException("Please specify a release version using the parameter: --version=1.0.0.0");
 
             Log.Debug("Finding project: " + ProjectName);
             var project = Session.GetProject(ProjectName);
@@ -57,8 +57,17 @@ namespace OctopusTools.Commands
             Log.Debug("Finding environments...");
             var environments = Session.FindEnvironments(DeployToEnvironmentNames);
 
-            Log.Debug("Finding release: " + VersionNumber);
-            var release = Session.GetRelease(project, VersionNumber);
+            Release release;
+            if (!string.IsNullOrWhiteSpace(VersionNumber))
+            {
+                Log.Debug("Finding release: " + VersionNumber);
+                release = Session.GetRelease(project, VersionNumber);
+            }
+            else 
+            {
+                release = Session.GetLatestRelease(project);
+                Log.Warn(string.Format("A --version parameter was not specified, the latest version, number {0}, has been automatically selected.", release.Version));
+            }
 
             if (environments == null || environments.Count <= 0) return;
             var linksToDeploymentTasks = Session.GetDeployments(release, environments, Force, Log).ToList();

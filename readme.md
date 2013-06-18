@@ -116,7 +116,8 @@ Where `[<options>]` is any of:
     --project=VALUE        Name of the project
     --deployto=VALUE       Environment to deploy to, e.g., Production
     --releaseNumber, --version=VALUE
-                           Version number of the release to deploy.
+                           [Optional] Version number of the release to deploy
+                             (default latest).
     --force                Whether to force redeployment of already
                              installed packages (flag, default false).
     --waitfordeployment    Whether to wait synchronously for deployment to

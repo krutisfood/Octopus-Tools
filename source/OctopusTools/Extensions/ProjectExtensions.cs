@@ -82,6 +82,13 @@ public static class ProjectExtensions
         return session.List<Release>(project.Link("Releases"), new QueryString { { "skip", skip }, { "take", take}});
     }
 
+
+    public static Release GetLatestRelease(this IOctopusSession session, Project project)
+    {
+        return session.GetReleases(project, 0, 1).OrderByDescending(p => SemanticVersion.Parse(p.Version)).First();
+    }
+
+
     public static IEnumerable<Deployment> GetMostRecentDeployments(this IOctopusSession session, Project project)
     {
         return session.List<Deployment>(project.Link(("RecentDeployments")));
