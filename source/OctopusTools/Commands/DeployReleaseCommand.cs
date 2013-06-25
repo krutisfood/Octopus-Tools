@@ -62,6 +62,7 @@ namespace OctopusTools.Commands
             {
                 Log.Debug("Finding release: " + VersionNumber);
                 release = Session.GetRelease(project, VersionNumber);
+                if (release == null) throw new ArgumentException(string.Format("A release named '{0}' for project '{1}' could not be found.", VersionNumber, project.Name));
             }
             else 
             {
